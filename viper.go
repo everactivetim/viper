@@ -1399,6 +1399,16 @@ func (v *Viper) IsSet(key string) bool {
 	return val != nil
 }
 
+func AddOverrider(o Overrider) { v.AddOverrider(o) }
+
+func (v *Viper) AddOverrider(o Overrider) {
+	if v.overriders == nil {
+		v.overriders = []Overrider{}
+	}
+
+	v.overriders = append(v.overriders, o)
+}
+
 // AutomaticEnv makes Viper check if environment variables match any of the existing keys
 // (config, default or flags). If matching env vars are found, they are loaded into Viper.
 func AutomaticEnv() { v.AutomaticEnv() }
