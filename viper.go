@@ -202,6 +202,8 @@ type Viper struct {
 	// Specific commands for ini parsing
 	iniLoadOptions ini.LoadOptions
 
+	overriders []Overrider
+
 	automaticEnvApplied bool
 	envKeyReplacer      StringReplacer
 	allowEmptyEnv       bool
@@ -222,6 +224,10 @@ type Viper struct {
 	// TODO: should probably be protected with a mutex
 	encoderRegistry *encoding.EncoderRegistry
 	decoderRegistry *encoding.DecoderRegistry
+}
+
+type Overrider interface{
+	Get(lowerCaseKey string) (string, bool)
 }
 
 // New returns an initialized Viper instance.
@@ -1259,6 +1265,14 @@ func (v *Viper) find(lcaseKey string, flagDefault bool) interface{} {
 	}
 	if nested && v.isPathShadowedInFlatMap(path, v.pflags) != "" {
 		return nil
+	}
+
+	if v.overriders != nil && len(v.overriders) != 0 {
+		for _, overrider := range v.overriders{
+			if val, ok := overrider.Get(lcaseKey); ok {
+				return val
+			}
+		}
 	}
 
 	// Env override next
